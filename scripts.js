@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     document.getElementById('createWorkspaceBtn').addEventListener('click', function () {
-        if (!isNaming) {
+        if (!isNaming) {            
             showfield();
             isNaming = true;
         } else {
@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    
     getWorkspaces();
 });
 
@@ -88,12 +89,24 @@ function create(workspace){
 }
 
 function update(){
-
+    
 }
 
 function remove(){
 
 }
+
+function getUnique(array){
+        var uniqueArray = [];
+        
+        // Loop through array values
+        for(i=0; i < array.length; i++){
+            if(uniqueArray.indexOf(array[i]) === -1) {
+                uniqueArray.push(array[i]);
+            }
+        }
+        return uniqueArray;
+    }
 
 function getWorkspaces(){
     chrome.storage.sync.get(null, function (data) {
@@ -107,15 +120,20 @@ function getWorkspaces(){
                         <div class="column"> \
                         <div class="name">' + workspaces[i].name + '</div> \
                         </div> \
-                        <div class="column has-text-right" style="float:right;"> \
+                        <div class="column has-text-right" style="float:right;display: inline-flex;"> \
                         <a class="button trashBtn" data-id="' + i + '"> \
                         <span class="icon is-small"> \
-                        <i class="fa fa-trash"></i> \
+                        <i class="fa fa-trash" title="delete"></i> \
                         </span> \
                         </a> \
                         <a class="button linkBtn" data-id="' + i + '"> \
                         <span class="icon is-small"> \
-                        <i class="fa fa-external-link"></i> \
+                        <i class="fa fa-external-link" title="open all"></i> \
+                        </span> \
+                        </a> \
+                        <a class="button updateBtn" data-id="' + i + '"> \
+                        <span class="icon is-small"> \
+                        <i class="fa fa-refresh" title="update"></i> \
                         </span> \
                         </a> \
                         </div> \
@@ -152,6 +170,44 @@ function getWorkspaces(){
                             for(var l=0; l<workspaces[id].tabs.length; l++){
                                 chrome.tabs.create({url: workspaces[id].tabs[l]});   
                             }
+                        });
+                    });
+                }
+
+                var updateBtns = document.getElementsByClassName('updateBtn');
+                for(var k=0; k<updateBtns.length; k++){
+                    document.getElementsByClassName('updateBtn')[k].addEventListener('click', function () {
+                        var id = parseInt(this.getAttribute("data-id"));
+                        chrome.storage.sync.get(null, function (data) {
+                            var workspaces = data.workspaces;
+                            console.log(workspaces[id].tabs);
+                            console.log(workspaces[id].name);
+
+                            chrome.tabs.query({currentWindow: true}, function(tabs) {
+
+                    var t = [];
+                    for(var i=0; i<tabs.length; i++){
+                        t.push(tabs[i].url);
+                    }
+
+                                                            for(var l=0; l<workspaces[id].tabs.length; l++){
+                                t.push(workspaces[id].tabs[l]);
+                            }
+							
+					var uniqueTabs = getUnique(t);		
+                    workspace = {
+                        "name": workspaces[id].name,
+                        "tabs": uniqueTabs
+                    };
+					workspaces.splice(id, 1,workspace);
+					
+					chrome.storage.sync.set({"workspaces": workspaces}, function () {
+                getWorkspaces();
+            });
+
+                    
+                });  
+                            
                         });
                     });
                 }
