@@ -1,7 +1,7 @@
 {
   "name": "Workspaces",
   "description": "Save all your current tabs and come back to them later.",
-  "version": "1",
+  "version": "2",
   "manifest_version": 2,
   "icons": { 
     "16": "icon16.png",
